@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertCircle, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { StatsRow } from "./stats-row";
 import { FiltersBar } from "./filters-bar";
 import { StoriesTable } from "./stories-table";
 import { PreviewSheet } from "./preview-sheet";
 import { PublishDialog } from "./publish-dialog";
+import { BroadcastDialog } from "./broadcast-dialog";
 import { useStories } from "@/hooks/use-stories";
 import type { UnifiedStory } from "@/lib/api/stories";
 import type { Filters } from "@/lib/types";
@@ -19,10 +21,18 @@ const INITIAL_FILTERS: Filters = {
   date: "all",
 };
 
+const PAGE_SIZE = 20;
+
 export function Dashboard() {
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
+  const [page, setPage] = useState(0);
   const [previewStory, setPreviewStory] = useState<UnifiedStory | null>(null);
   const [publishStory, setPublishStory] = useState<UnifiedStory | null>(null);
+  const [broadcastStory, setBroadcastStory] = useState<UnifiedStory | null>(null);
+
+  useEffect(() => {
+    setPage(0);
+  }, [filters]);
 
   const apiFilters = useMemo(
     () => ({
@@ -30,9 +40,10 @@ export function Dashboard() {
       category: filters.category === "all" ? undefined : filters.category,
       q: filters.search.trim() || undefined,
       ...dateRangeFromFilter(filters.date),
-      limit: 100,
+      limit: PAGE_SIZE,
+      offset: page * PAGE_SIZE,
     }),
-    [filters]
+    [filters, page]
   );
 
   const { data, isLoading, isError, error } = useStories(apiFilters);
@@ -40,6 +51,9 @@ export function Dashboard() {
   const stories = data?.items ?? [];
   const totals = data?.totals ?? { news: 0, curious: 0, combined: 0 };
   const errors = data?.errors ?? [];
+  const totalPages = Math.max(1, Math.ceil(totals.combined / PAGE_SIZE));
+  const showingFrom = totals.combined === 0 ? 0 : page * PAGE_SIZE + 1;
+  const showingTo = page * PAGE_SIZE + stories.length;
 
   return (
     <>
@@ -51,7 +65,8 @@ export function Dashboard() {
           </p>
         </div>
         <div className="hidden text-xs text-muted-foreground sm:block">
-          <span className="tabular-nums">{stories.length}</span> of{" "}
+          <span className="tabular-nums">{showingFrom}</span>–
+          <span className="tabular-nums">{showingTo}</span> of{" "}
           <span className="tabular-nums">{totals.combined}</span>
         </div>
       </div>
@@ -92,7 +107,38 @@ export function Dashboard() {
             stories={stories}
             onPreview={setPreviewStory}
             onPublish={setPublishStory}
+            onBroadcast={setBroadcastStory}
           />
+        )}
+
+        {totals.combined > PAGE_SIZE && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground tabular-nums">
+              Page {page + 1} of {totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0 || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setPage((p) => (p + 1 < totalPages ? p + 1 : p))
+                }
+                disabled={page + 1 >= totalPages || isLoading}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -103,9 +149,14 @@ export function Dashboard() {
           setPreviewStory(null);
           setPublishStory(s);
         }}
+        onBroadcast={(s) => {
+          setPreviewStory(null);
+          setBroadcastStory(s);
+        }}
       />
 
       <PublishDialog story={publishStory} onClose={() => setPublishStory(null)} />
+      <BroadcastDialog story={broadcastStory} onClose={() => setBroadcastStory(null)} />
     </>
   );
 }

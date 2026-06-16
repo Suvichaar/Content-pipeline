@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Eye, Inbox, Send } from "lucide-react";
+import { ExternalLink, Eye, Inbox, Megaphone, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ interface Props {
   stories: UnifiedStory[];
   onPreview: (story: UnifiedStory) => void;
   onPublish: (story: UnifiedStory) => void;
+  onBroadcast: (story: UnifiedStory) => void;
 }
 
 function formatDate(iso: string) {
@@ -39,7 +40,7 @@ function EmptyState() {
   );
 }
 
-export function StoriesTable({ stories, onPreview, onPublish }: Props) {
+export function StoriesTable({ stories, onPreview, onPublish, onBroadcast }: Props) {
   if (stories.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card">
@@ -102,6 +103,10 @@ export function StoriesTable({ stories, onPreview, onPublish }: Props) {
                       <Send className="h-3.5 w-3.5" />
                       Publish
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => onBroadcast(story)}>
+                      <Megaphone className="h-3.5 w-3.5" />
+                      Broadcast
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -130,14 +135,18 @@ export function StoriesTable({ stories, onPreview, onPublish }: Props) {
                 {new Date(story.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
               </span>
             </div>
-            <div className="mt-4 flex gap-2">
-              <Button variant="ghost" size="sm" className="flex-1" onClick={() => onPreview(story)}>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <Button variant="ghost" size="sm" onClick={() => onPreview(story)}>
                 <Eye className="h-3.5 w-3.5" />
                 Preview
               </Button>
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => onPublish(story)}>
+              <Button variant="outline" size="sm" onClick={() => onPublish(story)}>
                 <ExternalLink className="h-3.5 w-3.5" />
                 Publish
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onBroadcast(story)}>
+                <Megaphone className="h-3.5 w-3.5" />
+                Cast
               </Button>
             </div>
           </div>

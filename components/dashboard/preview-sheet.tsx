@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Send } from "lucide-react";
+import { ExternalLink, Megaphone, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ interface Props {
   story: UnifiedStory | null;
   onClose: () => void;
   onPublish: (story: UnifiedStory) => void;
+  onBroadcast: (story: UnifiedStory) => void;
 }
 
 function PipelineRow({ label, value }: { label: string; value: string }) {
@@ -30,7 +31,7 @@ function PipelineRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function PreviewSheet({ story, onClose, onPublish }: Props) {
+export function PreviewSheet({ story, onClose, onPublish, onBroadcast }: Props) {
   const open = !!story;
 
   return (
@@ -108,6 +109,10 @@ export function PreviewSheet({ story, onClose, onPublish }: Props) {
               <Button className="flex-1" onClick={() => onPublish(story)}>
                 <Send className="h-4 w-4" />
                 Publish
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={() => onBroadcast(story)}>
+                <Megaphone className="h-4 w-4" />
+                Broadcast
               </Button>
             </div>
           </>

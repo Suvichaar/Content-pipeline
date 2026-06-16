@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
-export type Section = "library" | "create";
+export type Section = "library" | "create" | "storyboard" | "subscribers";
 
 interface Props {
   section: Section;
@@ -16,6 +16,8 @@ interface Props {
 const TABS: { key: Section; label: string }[] = [
   { key: "library", label: "Library" },
   { key: "create", label: "Create" },
+  { key: "storyboard", label: "StoryBoard" },
+  { key: "subscribers", label: "Subscribers" },
 ];
 
 export function Navbar({ section, onSection }: Props) {
